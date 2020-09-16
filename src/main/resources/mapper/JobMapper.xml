@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.zealotpz.quartz.mapper.JobMapper">
+    <resultMap id="QuartzJobMap" type="com.zealotpz.quartz.model.QuartzJob">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result property="jobName" jdbcType="VARCHAR" column="job_name"/>
+        <result property="jobGroup" jdbcType="VARCHAR" column="job_group"/>
+        <result property="jobClassName" jdbcType="VARCHAR" column="job_class_name"/>
+        <result property="cronExpression" jdbcType="VARCHAR" column="cron_expression"/>
+        <result property="triggerState" jdbcType="VARCHAR" column="trigger_state"/>
+        <result property="oldJobName" jdbcType="VARCHAR" column="old_job_name"/>
+        <result property="oldJobGroup" jdbcType="VARCHAR" column="old_job_group"/>
+        <result property="jobEffectDateStart" jdbcType="TIMESTAMP" column="job_effect_date_start"/>
+        <result property="jobEffectDateEnd" jdbcType="TIMESTAMP" column="job_effect_date_end"/>
+        <result property="gmtCreate" jdbcType="TIMESTAMP" column="gmt_create"/>
+        <result property="jobMessage" jdbcType="VARCHAR" typeHandler="com.zealotpz.quartz.config.MySqlJsonHandler"
+                column="job_message"/>
+    </resultMap>
+
+    <select id="listJob" resultMap="QuartzJobMap">
+        SELECT
+        id,job_name,job_group,job_class_name,cron_expression,trigger_state,old_job_name,old_job_group,description,job_effect_date_start,job_effect_date_end,job_message,gmt_create
+        FROM
+        t_quartz_job
+        <if test="jobName != '' and jobName != null">
+            WHERE job_name LIKE CONCAT(CONCAT('%',#{jobName}),'%')
+        </if>
+    </select>
+
+    <select id="getJob" resultMap="QuartzJobMap">
+        SELECT
+          id,job_name,job_group,job_class_name,cron_expression,trigger_state,old_job_name,old_job_group,description,job_effect_date_start,job_effect_date_end,job_message,gmt_create
+        FROM
+          t_quartz_job
+        WHERE
+          job_group = #{jobGroup} AND job_name = #{jobName}
+    </select>
+
+    <insert id="saveJob" parameterType="com.zealotpz.quartz.model.QuartzJob">
+        INSERT INTO
+          t_quartz_job(job_name,job_group,job_class_name,cron_expression,trigger_state,old_job_name,old_job_group,description,job_effect_date_start,job_effect_date_end,job_message,gmt_create)
+        VALUES
+          (#{jobName},#{jobGroup},#{jobClassName},#{cronExpression},#{triggerState},#{oldJobName},#{oldJobGroup},#{description},#{jobEffectDateStart},#{jobEffectDateEnd},#{jobMessage},#{gmtCreate})
+    </insert>
+
+    <update id="updateJobStatus" parameterType="java.lang.String">
+        UPDATE
+          t_quartz_job
+        SET
+          trigger_state = #{status}
+        WHERE
+          job_group = #{jobGroup} AND job_name = #{jobName}
+    </update>
+
+    <delete id="removeQuartzJob" parameterType="java.lang.String">
+        DELETE FROM
+          t_quartz_job
+        WHERE
+          job_group = #{jobGroup} AND job_name = #{jobName}
+    </delete>
+
+    <update id="updateJob" parameterType="com.zealotpz.quartz.model.QuartzJob">
+        UPDATE
+        t_quartz_job
+        <set>
+            <if test="jobName != null">
+                job_name = #{jobName},
+            </if>
+            <if test="jobGroup != null">
+                job_group = #{jobGroup},
+            </if>
+            <if test="jobClassName != null">
+                job_class_name = #{jobClassName},
+            </if>
+            <if test="cronExpression != null">
+                cron_expression = #{cronExpression},
+            </if>
+            <if test="triggerState != null">
+                trigger_state = #{triggerState},
+            </if>
+            <if test="oldJobName != null">
+                old_job_name = #{oldJobName},
+            </if>
+            <if test="oldJobGroup != null">
+                old_job_group = #{oldJobGroup},
+            </if>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="jobEffectDateStart != null">
+                job_effect_date_start = #{jobEffectDateStart},
+            </if>
+            <if test="jobEffectDateEnd != null">
+                job_effect_date_end = #{jobEffectDateEnd},
+            </if>
+            <if test="jobMessage != null">
+                job_message = #{jobMessage},
+            </if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+
+    <update id="updateJobBase" parameterType="com.zealotpz.quartz.model.QuartzJob">
+        UPDATE
+        t_quartz_job
+        <set>
+            <if test="description != null">
+                description = #{description},
+            </if>
+            <if test="jobEffectDateStart != null">
+                job_effect_date_start = #{jobEffectDateStart},
+            </if>
+            <if test="jobEffectDateEnd != null">
+                job_effect_date_end = #{jobEffectDateEnd},
+            </if>
+            <if test="jobMessage != null">
+                job_message = #{jobMessage},
+            </if>
+        </set>
+        WHERE
+        id = #{id}
+    </update>
+</mapper>

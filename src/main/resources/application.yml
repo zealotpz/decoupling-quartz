@@ -1,0 +1,58 @@
+server:
+  port: 8089
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/decoupling_quartz
+    username: root
+    password: 123456
+  rabbitmq:
+    host: 192.168.8.1
+    username: 1
+    password: 1
+    virtual-host: /
+  quartz:
+    #相关属性配置
+    properties:
+      org:
+        quartz:
+          scheduler:
+            #调度器实例名称,同一组数据库表作集群只需要配置相同的instanceName实例名称
+            instanceName: immsScheduler
+            #调度器实例编号自动生成
+            instanceId: AUTO
+          jobStore:
+            #多节点时防止多次触发
+            #acquireTriggersWithinLock: true
+            #持久化方式配置
+            class: org.quartz.impl.jdbcjobstore.JobStoreTX
+            driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
+            tablePrefix: qrtz_
+            #集群配置：开启分布式部署,如果有多个调度器实体的话则必须设置为true
+            isClustered: true
+            #集群配置：检查集群下的其他调度器实体的时间间隔，单位：毫秒
+            clusterCheckinInterval: 10000
+            #集群配置：设置一个频度(毫秒)，用于实例报告给集群中的其他实例
+            #            maxMisfiresToHandleAtATime: 1
+            #配置是否使用
+            useProperties: false
+          threadPool:
+            #线程池实现类
+            class: org.quartz.simpl.SimpleThreadPool
+            #执行最大并发线程数量
+            threadCount: 10
+            #线程优先级
+            threadPriority: 5
+            #配置是否启动自动加载数据库内的定时任务，默认true
+            threadsInheritContextClassLoaderOfInitializingThread: true
+    #            withMisfireHandlingInstructionNextWithRemainingCount: true
+    #基于数据库持久化数据
+    job-store-type: jdbc
+    #初始化表结构(是否每次都删除并重新创建表)
+#    jdbc:
+#      initialize-schema: never
+mybatis:
+  mapper-locations: classpath:/mapper/*.xml
+  type-handlers-package: com.zealotpz.quartz.config
+  configuration:
+    map-underscore-to-camel-case: true

@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>定时任务管理</title>
+
+    <link rel="shortcut icon" href="favicon.ico">
+    <!-- 引入样式 -->
+    <!--        <link type="text/css" href="/css/bootstrap_3.3.7.css">-->
+    <link rel="stylesheet" href="css/bootstrap_3.3.7.css">
+    <link rel="stylesheet" href="https://unpkg.com/element-ui/lib/theme-chalk/index.css">
+    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css.map">
+    <!--    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.0.0/animate.min.css"/>-->
+    <!--    <link rel="stylesheet" href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css">-->
+
+    <!-- 引入组件库 -->
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/vue-router/dist/vue-router.js"></script>
+    <script src="https://unpkg.com/element-ui/lib/index.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <style>
+        .v-enter,
+        .v-leave-to {
+            transform-style: flat;
+            opacity: 0;
+            /*transform: translateX(100px);*/
+        }
+
+        .v-enter-active,
+        .v-leave-active {
+            transition: all 0.5s ease;
+        }
+
+        h3 {
+            opacity: 0.5;
+            /*transform: translateX(40px);*/
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="jobApp">
+
+    <pz-component message="任务列表" style="text-align: center"></pz-component>
+    <el-input style="width:200px" placeholder="搜索任务名称" v-model="jobName" autosize clearable autofocus
+              @keyup.enter.native="queryJob(jobName,pageNum,pageSize)"></el-input>
+    &nbsp;
+    <el-button type="primary" icon="el-icon-search" @click="queryJob(jobName,pageNum,pageSize)">搜索</el-button>
+    <el-button type="success" icon="el-icon-circle-plus" @click="dialogVisible = true">新增任务</el-button>
+    <br><br>
+    <el-table :data="respDate" stripe border style="width: 100%">
+        <el-table-column prop="jobName" label="任务名称"></el-table-column>
+        <el-table-column prop="jobGroup" label="任务分组名称"></el-table-column>
+        <el-table-column prop="description" label="任务描述"></el-table-column>
+        <el-table-column prop="jobClassName" label="执行类"></el-table-column>
+        <el-table-column prop="cronExpression" width="120px" label="执行时间"></el-table-column>
+        <el-table-column align="center" prop="triggerState" width="120px" label="任务状态">
+            <template slot-scope="{row: {triggerState}}">
+                <span v-if="triggerState === 'RUNNING'" style="color: #5cb85c; font-weight: bold">运行中</span>
+                <span v-else-if="triggerState === 'PAUSED'" style="color: #d43f3a; font-weight: bold">暂停</span>
+                <span v-else>未知状态</span>
+            </template>
+        </el-table-column>
+        <el-table-column label="操作">
+            <template slot-scope="scope">
+                <button type="submit" class="btn btn-primary"
+                        @click="triggerJob(scope.row.jobName,scope.row.jobGroup)">
+                    触发一次
+                </button>
+                <button type="submit" class="btn btn-default"
+                        @click="resumeJob(scope.row.jobName,scope.row.jobGroup)"
+                        style="background-color: #7ED321;color:#FFFFFF">恢复任务
+                </button>
+                <button type="submit" class="btn btn-default"
+                        @click="pauseJob(scope.row.jobName,scope.row.jobGroup)"
+                        style="background-color: #FF2E2E;color:#FFFFFF">停止任务
+                </button>
+            </template>
+        </el-table-column>
+    </el-table>
+
+    <br>
+    <div class="block" style="text-align: center">
+        <el-pagination
+                @size-change="handleSizeChange"
+                @current-change="handleCurrentChange"
+                :current-page="response != null ? response.data.pageNum : 1"
+                :page-sizes="[10, 20, 2, 5]"
+                :page-size="response != null? response.data.pageSize : 1"
+                layout="total, sizes, prev, pager, next, jumper"
+                :total="response != null ? response.data.total : 0">
+        </el-pagination>
+    </div>
+
+    <el-dialog title="新增任务" @close="closeJobForm" :visible.sync="dialogVisible" width="35%" :before-close="handleClose"
+               style="text-align: center">
+        <div class="modal-body">
+            <el-form ref="addJobForm" :rules="rulesAddJob" :model="addJobProps" label-width="100px">
+                <el-form-item prop="jobName" label="任务名称">
+                    <el-input v-model="addJobProps.jobName" placeholder="rfmJob" required></el-input>
+                </el-form-item>
+                <el-form-item prop="jobGroup" label="任务组">
+                    <el-input v-model="addJobProps.jobGroup" placeholder="memberBatch" required></el-input>
+                </el-form-item>
+                <el-form-item prop="description" label="任务描述">
+                    <el-input v-model="addJobProps.description" placeholder="rfm 统计任务" required></el-input>
+                </el-form-item>
+                <el-form-item prop="cronExpression" label="任务时间">
+                    <el-input v-model="addJobProps.cronExpression" placeholder="0 0 01 * * ?" required></el-input>
+                </el-form-item>
+                <el-form-item prop="className" label="任务执行类">
+                    <el-input v-model="addJobProps.className"
+                              placeholder="com.zealotpz.quartz.job.MemberBatchJob"
+                              required></el-input>
+                </el-form-item>
+                <el-form-item prop="jobMessage" label="任务消息">
+                    <el-input v-model="addJobProps.jobMessage" placeholder="json 数据" required></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button @click="dialogVisible = false">取消</el-button>
+                    <el-button type="primary" @click="addJob">
+                        <!--@click="addJob(addJobName, addJobGroup, addDescription, addCron, addClassName, addJobMessage)">-->
+                        确认新增
+                    </el-button>
+                </el-form-item>
+            </el-form>
+        </div>
+        <!--        <span slot="footer" class="dialog-footer">-->
+        <!--    <el-button @click="dialogVisible = false">取 消</el-button>-->
+        <!--    <el-button type="primary"-->
+        <!--               @click="addJob(addJobName, jobGroup, description, cron, className, jobMessage)"> 确认新增</el-button>-->
+        <!--        </span>-->
+    </el-dialog>
+
+</div>
+
+<template>
+    <el-button plain @click="open1"> 成功</el-button>
+    <el-button plain @click="open2"> 警告</el-button>
+    <el-button plain @click="open3"> 消息</el-button>
+    <el-button plain @click="open4"> 错误</el-button>
+</template>
+
+<script>
+    //自定义组件(全局)
+    Vue.component('pzComponent', {
+        props: ['message'],
+        // template 只能有一个根元素
+        template: '<h1> {{message}} </h1>'
+    })
+
+    //自定义指令(全局)
+    Vue.directive('focus', {
+        // 当绑定元素插入到 DOM 中。
+        inserted(el) {
+            // 聚焦元素
+            el.focus()
+        }
+    })
+
+    //TODO 请求地址前缀 环境切换
+    // ==== 开发环境
+    // axios.defaults.baseURL = 'http://192.168.8.53:8997/job/'
+
+    // ==== 测试环境
+
+    // ==== 本地环境
+    axios.defaults.baseURL = 'http://localhost:8089/job/'
+
+
+    axios.defaults.headers.common['Access-Control-Allow-Origin'] = '*';
+    axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
+
+    var vm = new Vue({
+        //组件
+        component: {
+            successAlert: {
+                props: ['success_msg'],
+                template: '<el-alert title={{success_msg}} type="success" center show-icon> </el-alert>'
+            }
+        },
+        el: '#jobApp',
+        data: {
+            pageNum: 1,
+            pageSize: 10,
+            dialogVisible: false,
+            showModal: false,
+            jobName: null,
+            respDate: null,
+            response: null,
+            triggerState: null,
+
+            jobGroup: null,
+            description: null,
+            cron: null,
+            className: null,
+            jobMessage: null,
+
+            //新增任务
+            addJobProps: {
+                jobName: null,
+                jobGroup: null,
+                description: null,
+                cronExpression: null,
+                className: null,
+                jobMessage: null,
+            },
+            // 验证规则-新增任务
+            rulesAddJob: {
+                jobName: [
+                    {required: true, message: '请输入任务名称', trigger: 'blur'}
+                ], jobGroup: [
+                    {required: true, message: '请输入任务组', trigger: 'blur'}
+                ], description: [
+                    {required: true, message: '请输入任务描述', trigger: 'blur'}
+                ], cronExpression: [
+                    {required: true, message: '请输入任务执行时间', trigger: 'blur'}
+                ], className: [
+                    {required: true, message: '请输入任务执行类', trigger: 'blur'}
+                ],
+            },
+
+
+        },
+        methods: {
+            handleSizeChange(val) {
+                this.queryJob(this.jobName, this.pageNum, val)
+                console.log(`每页 ${val} 条`);
+            },
+            handleCurrentChange(val) {
+                this.queryJob(this.jobName, val, this.pageSize)
+                console.log(`当前页: ${val}`);
+            },
+            handleClose(done) {
+                this.$confirm('确认关闭？')
+                    .then(_ => {
+                        this.$refs.addJobForm.resetFields() // 清空表单
+                        done();
+                    })
+                    .catch(_ => {
+                    });
+            },
+            //关闭新增任务弹窗,并清空数据
+            closeJobForm() {
+                this.$refs.addJobForm.resetFields()
+            },
+            submitCheck(jobName, jobGroup, description, cron, className, jobMessage) {
+                if (null == jobName) {
+                    alert('请输入任务名称!')
+                    return false
+                }
+                if (null == jobGroup) {
+                    alert('请输入任务分组!')
+                }
+                if (null == description) {
+                    alert('请输入任务描述')
+                }
+                if (null == cron) {
+                    alert('请输入任务执行时间!')
+                }
+                if (null == className) {
+                    alert('请输入任务执行类!')
+                    return
+                }
+                this.addJob(jobName, jobGroup, description, cron, className, jobMessage)
+            },
+            //查询任务
+            queryJob(jobName, pageNum, pageSize) {
+                axios({
+                    url: 'list',
+                    timeout: 1000,
+                    method: 'post',
+                    data: {
+                        "jobName": jobName,
+                        "pageNum": pageNum,
+                        "pageSize": pageSize
+                    }
+                }).then(response => {
+                    this.response = response
+                    this.respDate = response.data.list;
+                }).catch(error => {
+                    if (error) {
+                        throw error
+                    }
+                })
+            },
+            //触发一次任务
+            triggerJob(jobName, jobGroup) {
+                axios({
+                    url: 'trigger',
+                    method: 'post',
+                    data: {
+                        "jobName": jobName,
+                        "jobGroup": jobGroup
+                    }
+                }).then(response => {
+                    if (null != response && response.data.code === "000000") {
+                        this.open1(response.data.code + ' -- ' + response.data.desc)
+                    } else {
+                        this.open4(response.data.code + ' -- ' + response.data.desc)
+                    }
+                    // alert(response.data.code + ' -- ' + response.data.desc)
+                }).catch(error => {
+                    if (error) {
+                        throw error
+                    }
+                })
+            },
+            //恢复任务
+            resumeJob(jobName, jobGroup) {
+                axios({
+                    url: 'resume',
+                    method: 'post',
+                    data: {
+                        "jobName": jobName,
+                        "jobGroup": jobGroup
+                    }
+                }).then(response => {
+                    if (null != response && response.data.code === "000000") {
+                        this.open1(response.data.code + ' -- ' + response.data.desc)
+                    } else {
+                        this.open4(response.data.code + ' -- ' + response.data.desc)
+                    }
+                    // alert(response.data.code + ' -- ' + response.data.desc)
+                }).catch(error => {
+                    if (error) {
+                        throw error
+                    }
+                })
+            },
+            //停止/暂停任务
+            pauseJob(jobName, jobGroup) {
+                axios({
+                    url: 'pause',
+                    method: 'post',
+                    data: {
+                        "jobName": jobName,
+                        "jobGroup": jobGroup
+                    }
+                }).then(response => {
+                    if (null != response && response.data.code === "000000") {
+                        this.open1(response.data.code + ' -- ' + response.data.desc)
+                    } else {
+                        this.open4(response.data.code + ' -- ' + response.data.desc)
+                    }
+                    // alert(response.data.code + ' -- ' + response.data.desc)
+                }).catch(error => {
+                    if (error) {
+                        throw error
+                    }
+                })
+            },
+            //新增任务
+            // addJob(jobName, jobGroup, description, cron, className, jobMessage) {
+            addJob() {
+                this.$refs.addJobForm.validate(async valid => {
+                    if (!valid) return null  // 如果验证失败就不往下继续执行
+                    //请求后台 新增任务
+                    axios({
+                        url: 'add',
+                        method: 'post',
+                        data: this.addJobProps
+                    }).then(response => {
+                        if (null != response && response.data.code === "000000") {
+                            this.open1(response.data.code + ' -- ' + response.data.desc)
+                            this.dialogVisible = false  // 关闭弹框
+                            this.$refs.addJobForm.resetFields() // 清空表单
+                            this.queryJob() // 重新调用，刷新表单
+                        } else {
+                            this.open4(response.data.code + ' -- ' + response.data.desc)
+                        }
+                        // alert(response.data.code + ' -- ' + response.data.desc)
+                    }).catch(error => {
+                        if (error) {
+                            throw error
+                        }
+                    })
+                })
+
+            },
+            open1(msg) {
+                this.$notify({
+                    title: '操作成功',
+                    message: msg,
+                    type: 'success'
+                });
+            },
+
+            open2(msg) {
+                this.$notify({
+                    title: '警告',
+                    message: msg,
+                    type: 'warning'
+                });
+            },
+
+            open4(msg) {
+                this.$notify.error({
+                    title: '操作失败',
+                    type: 'error',
+                    message: msg
+                });
+            }
+
+        },
+        //页面加载后执行
+        mounted: function () {
+            this.queryJob(null, this.pageNum, this.pageSize)
+        },
+    })
+
+</script>
+</body>
+
+</html>
