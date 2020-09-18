@@ -110,10 +110,16 @@
                 <el-form-item prop="cronExpression" label="任务时间">
                     <el-input v-model="addJobProps.cronExpression" placeholder="0 0 01 * * ?" required></el-input>
                 </el-form-item>
+                <!--                <el-form-item prop="className" label="任务执行类">-->
+                <!--                    <el-input v-model="addJobProps.className"-->
+                <!--                              placeholder="com.zealotpz.quartz.job.MemberBatchJob"-->
+                <!--                              required></el-input>-->
+                <!--                </el-form-item>-->
                 <el-form-item prop="className" label="任务执行类">
-                    <el-input v-model="addJobProps.className"
-                              placeholder="com.zealotpz.quartz.job.MemberBatchJob"
-                              required></el-input>
+                    <el-select v-model="addJobProps.jobClassName" placeholder="请选择" style="width: 440px">
+                        <el-option v-for="item in packageClassName" key="item" :label="item" :value="item">
+                        </el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item prop="jobMessage" label="任务消息">
                     <el-input v-model="addJobProps.jobMessage" placeholder="json 数据" required></el-input>
@@ -204,7 +210,7 @@
                 jobGroup: null,
                 description: null,
                 cronExpression: null,
-                className: null,
+                jobClassName: null,
                 jobMessage: null,
             },
             // 验证规则-新增任务
@@ -217,14 +223,31 @@
                     {required: true, message: '请输入任务描述', trigger: 'blur'}
                 ], cronExpression: [
                     {required: true, message: '请输入任务执行时间', trigger: 'blur'}
-                ], className: [
+                ], jobClassName: [
                     {required: true, message: '请输入任务执行类', trigger: 'blur'}
                 ],
             },
 
+            //执行类筛选
+            packageClassName: null,
+            item: null
 
         },
         methods: {
+            getPackageClassName() {
+                axios({
+                    baseURL: 'http://localhost:8089/class/',
+                    url: '/package/getName',
+                    timeout: 1000,
+                    method: 'get',
+                }).then(response => {
+                    this.packageClassName = response.data;
+                }).catch(error => {
+                    if (error) {
+                        throw error
+                    }
+                })
+            },
             handleSizeChange(val) {
                 this.queryJob(this.jobName, this.pageNum, val)
                 console.log(`每页 ${val} 条`);
@@ -374,6 +397,7 @@
                         // alert(response.data.code + ' -- ' + response.data.desc)
                     }).catch(error => {
                         if (error) {
+                            this.open4(response.data.code + ' -- ' + response.data.desc)
                             throw error
                         }
                     })
@@ -408,6 +432,7 @@
         //页面加载后执行
         mounted: function () {
             this.queryJob(null, this.pageNum, this.pageSize)
+            this.getPackageClassName()
         },
     })
 

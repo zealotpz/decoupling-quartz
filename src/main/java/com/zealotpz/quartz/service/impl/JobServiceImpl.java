@@ -19,7 +19,7 @@ import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.beans.FeatureDescriptor;
 import java.time.LocalDateTime;
@@ -47,15 +47,12 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public Result<String> saveJob(QuartzJob quartz) {
         try {
             if (scheduler.checkExists(JobKey.jobKey(quartz.getJobName(), quartz.getJobGroup()))) {
                 log.error("Job已经存在, jobName={},jobGroup={}", quartz.getJobName(), quartz.getJobGroup());
                 throw new MyExpection(String.format("Job已经存在, jobName=%s,jobGroup=%s", quartz.getJobName(), quartz.getJobGroup()));
-            }
-            //FIXME 默认ProcessPlanJob.java
-            if (StringUtils.isEmpty(quartz.getJobClassName())) {
-                quartz.setJobClassName("com.zmkj.scheduled.job.ProcessPlanJob");
             }
 
             schedulerJob(quartz);
@@ -66,8 +63,8 @@ public class JobServiceImpl implements JobService {
             jobMapper.saveJob(quartz);
         } catch (Exception e) {
             log.error("添加job失败, quartz" + e.getMessage(), e);
-            throw new MyExpection("类名不存在或执行表达式错误");
-//            return Result.failure();
+            return Result.failure();
+//            throw new MyExpection("类名不存在或执行表达式错误");
         }
         return Result.ok();
     }
@@ -275,6 +272,7 @@ public class JobServiceImpl implements JobService {
         } catch (Exception e) {
             log.error("定时任务" + e.getMessage(), e);
             log.error("新增job失败:[{}]", job.getJobName());
+            throw new MyExpection("新增job失败");
         }
     }
 

@@ -1,4 +1,4 @@
-package com.zealotpz.quartz.job;
+package com.zealotpz.quartz.utils;
 
 import com.zealotpz.quartz.model.QuartzJob;
 import com.zealotpz.quartz.service.JobService;

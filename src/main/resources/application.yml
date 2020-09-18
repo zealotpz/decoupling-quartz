@@ -1,6 +1,8 @@
 server:
   port: 8089
 spring:
+  application:
+    name: decoupling-quartz
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/decoupling_quartz
@@ -56,3 +58,8 @@ mybatis:
   type-handlers-package: com.zealotpz.quartz.config
   configuration:
     map-underscore-to-camel-case: true
+logging:
+  level:
+    com.zealotpz.quartz.mapper: debug
+  file:
+    path: /Users/zealotpz/GitHub/decoupling-quartz/log

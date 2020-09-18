@@ -60,7 +60,7 @@ public class Result<T> {
     }
 
     public static <T> Result<T> ok() {
-        return ok(null);
+        return ok(CommonEnum.SUCCESS);
     }
 
     public static <T> Result<T> failure(T t) {
