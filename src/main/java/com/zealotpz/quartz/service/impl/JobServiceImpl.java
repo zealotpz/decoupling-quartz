@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import java.beans.FeatureDescriptor;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -34,7 +35,7 @@ public class JobServiceImpl implements JobService {
 
     @Autowired
     private Scheduler scheduler;
-    @Autowired
+    @Resource
     private JobMapper jobMapper;
     @Autowired
     private SimpleTriggerListener simpleTriggerListener;
@@ -167,10 +168,10 @@ public class JobServiceImpl implements JobService {
 //                scheduler.resumeTrigger(trigger.getKey());
                 scheduler.rescheduleJob(trigger.getKey(), trigger);
 
-                //更新 myjob信息
+                //更新 myJob信息
                 Result<QuartzJob> jobResult = getJob(jobName, jobGroup);
                 if (!jobResult.isSuccess() || null == jobResult.getData()) {
-                    log.info("更新定时任务[{}]时间-myjob 信息修改有误", jobName);
+                    log.info("更新定时任务[{}]时间-myJob 信息修改有误", jobName);
                     return Result.failure();
                 }
                 QuartzJob quartzJob = jobResult.getData();
@@ -223,7 +224,7 @@ public class JobServiceImpl implements JobService {
                 log.info("更新定时任务[{}]-[{}]信息修改有误", quartzJobDTO.getOldJobName(), quartzJobDTO.getOldJobGroup());
                 return Result.ok();
             }
-            //查询 myjob 任务信息
+            //查询 myJob 任务信息
             QuartzJob quartzJob = jobResult.getData();
             BeanUtils.copyProperties(quartzJobDTO, quartzJob, getNullPropertyNames(quartzJobDTO));
             schedulerJob(quartzJob);
@@ -245,7 +246,7 @@ public class JobServiceImpl implements JobService {
             log.info("更新定时任务[{}]-[{}]信息修改有误", quartzJob.getJobName(), quartzJob.getJobGroup());
             return Result.ok(CommonEnum.SET_EXAMPLE_CRITERIA);
         }
-        //查询 myjob 任务信息
+        //查询 myJob 任务信息
         QuartzJob oldQuartzJob = jobResult.getData();
         quartzJob.setId(oldQuartzJob.getId());
         jobMapper.updateJobBase(quartzJob);
