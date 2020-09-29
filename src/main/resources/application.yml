@@ -3,16 +3,28 @@ server:
 spring:
   application:
     name: decoupling-quartz
+  #数据库配置(Mysql)
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://127.0.0.1:3306/decoupling_quartz
     username: root
     password: 123456
+  #消息队列 rabbitMq 配置
   rabbitmq:
     host: 192.168.8.1
     username: 1
     password: 1
     virtual-host: /
+#  #消息队列 kafka 配置
+#  kafka:
+#    # kafka 生产者配置
+#    producer:
+#      bootstrap-servers: 127.0.0.1:9092
+#    # kafka 消费者配置
+#    consumer:
+#      bootstrap-servers: 127.0.0.1:9092
+#      group-id: test-consumer-group
+  #定时任务框架 Quartz 配置
   quartz:
     #相关属性配置
     properties:
@@ -47,17 +59,19 @@ spring:
             threadPriority: 5
             #配置是否启动自动加载数据库内的定时任务，默认true
             threadsInheritContextClassLoaderOfInitializingThread: true
-    #            withMisfireHandlingInstructionNextWithRemainingCount: true
+            # withMisfireHandlingInstructionNextWithRemainingCount: true
     #基于数据库持久化数据
     job-store-type: jdbc
     #初始化表结构(是否每次都删除并重新创建表)
 #    jdbc:
 #      initialize-schema: never
+#Mybatis配置
 mybatis:
   mapper-locations: classpath:/mapper/*.xml
   type-handlers-package: com.zealotpz.quartz.config
   configuration:
     map-underscore-to-camel-case: true
+#日志配置
 logging:
   level:
     com.zealotpz.quartz.mapper: debug
