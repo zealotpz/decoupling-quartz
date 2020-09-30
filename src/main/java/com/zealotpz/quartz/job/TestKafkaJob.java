@@ -28,7 +28,6 @@ public class TestKafkaJob extends QuartzJobBean {
     @Override
     protected void executeInternal(JobExecutionContext context) {
 
-
         /*获取job的属性*/
         JobKey jobkey = context.getJobDetail().getKey();
 
@@ -38,7 +37,7 @@ public class TestKafkaJob extends QuartzJobBean {
         log.info("定时任务参数:[{}]-任务组:[{}]-触发器:[{}]--------->时间:{}", jobkey.getName(), jobkey.getGroup(), tKey.getName(), new Date());
 
         JSONObject jsonObject = new JSONObject();
-        kafkaTemplate.send("","");
+        kafkaTemplate.send("test-topic","测试测试");
 
     }
 

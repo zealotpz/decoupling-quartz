@@ -45,10 +45,10 @@
         </dependency>
         <!--引入消息队列 rabbitMq-->
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-amqp -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-amqp</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-amqp</artifactId>-->
+<!--        </dependency>-->
         <!--引入消息队列 kafka-->
         <!-- https://mvnrepository.com/artifact/org.springframework.kafka/spring-kafka -->
         <dependency>

@@ -6,24 +6,33 @@ spring:
   #数据库配置(Mysql)
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/decoupling_quartz
+    url: jdbc:mysql://127.0.0.1:3306/decoupling_quartz?useUnicode=true&characterEncoding=UTF-8&useSSL=false
     username: root
     password: 123456
   #消息队列 rabbitMq 配置
-  rabbitmq:
-    host: 192.168.8.1
-    username: 1
-    password: 1
-    virtual-host: /
-#  #消息队列 kafka 配置
-#  kafka:
-#    # kafka 生产者配置
-#    producer:
-#      bootstrap-servers: 127.0.0.1:9092
-#    # kafka 消费者配置
-#    consumer:
-#      bootstrap-servers: 127.0.0.1:9092
-#      group-id: test-consumer-group
+  #  rabbitmq:
+  #    host: 192.168.8.1
+  #    username: 1
+  #    password: 1
+  #    virtual-host: /
+  #消息队列 kafka 配置
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+    # kafka 生产者配置
+    producer:
+      # 指定消息key和消息体的编解码方式
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    # kafka 消费者配置
+    consumer:
+      # 指定默认消费者group id
+      group-id: test-consumer-group
+      #默认的offset-reset是latest，导致分配分区前的间隔时间内，新分区的消息会丢失
+      #设置为earliest从头消费该分区数据，即使新分区，也会消费间隔时间内产生的旧消息
+      auto-offset-reset: earliest
+      # 指定消息key和消息体的编解码方式
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
   #定时任务框架 Quartz 配置
   quartz:
     #相关属性配置

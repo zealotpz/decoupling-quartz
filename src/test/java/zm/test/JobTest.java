@@ -88,8 +88,8 @@ public class JobTest {
     @Test
     public void removeJob() {
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("jobName", "test2");
-        jsonObject.put("jobGroup", "dailyTask");
+        jsonObject.put("jobName", "testKafka");
+        jsonObject.put("jobGroup", "test");
 
         String ret = HttpUtil.sendJsonHttpsPost("http://localhost:8089/job/remove", jsonObject.toJSONString());
         System.out.println("removeJob ------->" + ret);
