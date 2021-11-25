@@ -16,10 +16,13 @@ import java.util.Date;
  * description: 测试定时任务用-仅打印相关信息
  * 消息队列采用 kafka
  *
- * @author zealotpz*/
+ * @author zealotpz
+ * 注解 @DisallowConcurrentExecution trigger不允许并发执行
+ */
 
 @Slf4j
 @Component
+//@DisallowConcurrentExecution
 public class TestKafkaJob extends QuartzJobBean {
 
     @Resource
@@ -37,7 +40,7 @@ public class TestKafkaJob extends QuartzJobBean {
         log.info("定时任务参数:[{}]-任务组:[{}]-触发器:[{}]--------->时间:{}", jobkey.getName(), jobkey.getGroup(), tKey.getName(), new Date());
 
         JSONObject jsonObject = new JSONObject();
-        kafkaTemplate.send("test-topic","测试测试");
+        kafkaTemplate.send("test-topic", "测试测试");
 
     }
 

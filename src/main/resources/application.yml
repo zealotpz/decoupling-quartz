@@ -45,8 +45,8 @@ spring:
             #调度器实例编号自动生成
             instanceId: AUTO
           jobStore:
-            #多节点时防止多次触发
-            #acquireTriggersWithinLock: true
+            # 拉取trigger是上锁,多节点时防止多次触发
+            acquireTriggersWithinLock: true
             #持久化方式配置
             class: org.quartz.impl.jdbcjobstore.JobStoreTX
             driverDelegateClass: org.quartz.impl.jdbcjobstore.StdJDBCDelegate
