@@ -5,6 +5,7 @@ import com.zealotpz.quartz.dto.QuartzJobDTO;
 import com.zealotpz.quartz.entity.Result;
 import com.zealotpz.quartz.model.QuartzJob;
 import com.zealotpz.quartz.service.JobService;
+import com.zealotpz.quartz.utils.SnowFlakeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +31,7 @@ public class JobController {
         return jobService.saveJob(quartz);
     }
 
+    //    @CrossOrigin
     @PostMapping(value = "/list")
     public PageInfo<QuartzJob> list(@RequestBody QuartzJobDTO quartzJobDTO) {
 //        String jobName, Integer pageNum, Integer pageSize
@@ -84,6 +86,12 @@ public class JobController {
     public Result<String> updateJobBase(@RequestBody QuartzJob quartzJob) {
         log.info("修改任务基础信息:{}", quartzJob.toString());
         return jobService.updateJobBase(quartzJob);
+    }
+
+    // 仅修改 描述,起止时间）
+    @PostMapping("/test")
+    public long test() {
+        return SnowFlakeUtil.nextId();
     }
 
 }
