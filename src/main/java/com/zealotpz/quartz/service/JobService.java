@@ -92,4 +92,5 @@ public interface JobService {
 
 
     void schedulerJob(QuartzJob job) throws Exception;
+
 }

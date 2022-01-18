@@ -61,6 +61,7 @@ public class JobServiceImpl implements JobService {
             quartz.setOldJobGroup(quartz.getJobGroup());
             quartz.setOldJobName(quartz.getJobName());
             quartz.setGmtCreate(LocalDateTime.now());
+
             jobMapper.saveJob(quartz);
         } catch (Exception e) {
             log.error("添加job失败, quartz" + e.getMessage(), e);

@@ -5,6 +5,7 @@ import com.zealotpz.quartz.dto.QuartzJobDTO;
 import com.zealotpz.quartz.entity.Result;
 import com.zealotpz.quartz.model.QuartzJob;
 import com.zealotpz.quartz.service.JobService;
+import com.zealotpz.quartz.service.TestService;
 import com.zealotpz.quartz.utils.SnowFlakeUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,9 @@ public class JobController {
 
     @Autowired
     private JobService jobService;
+
+    @Autowired
+    private TestService testService;
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @PostMapping("/add")
@@ -88,10 +92,20 @@ public class JobController {
         return jobService.updateJobBase(quartzJob);
     }
 
-    // 仅修改 描述,起止时间）
+    /**
+     * 测试雪花(16 位)
+     * 6312609171247104
+      */
     @PostMapping("/test")
     public long test() {
+
         return SnowFlakeUtil.nextId();
     }
+
+    @PostMapping("/testLog")
+    public void testLog() {
+        testService.dataOperationLog("11111");
+    }
+
 
 }

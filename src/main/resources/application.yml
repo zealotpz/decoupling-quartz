@@ -6,9 +6,9 @@ spring:
   #数据库配置(Mysql)
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/decoupling_quartz?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    url: jdbc:mysql://110.40.195.125:33306/decoupling_quartz?useUnicode=true&characterEncoding=UTF-8&useSSL=false
     username: root
-    password: McNgaU9sLIOBGW0v
+    password: 55bf435d1d452157
   #消息队列 rabbitMq 配置
   #  rabbitmq:
   #    host: 192.168.8.1
@@ -17,7 +17,7 @@ spring:
   #    virtual-host: /
   #消息队列 kafka 配置
   kafka:
-    bootstrap-servers: 127.0.0.1:9092
+    bootstrap-servers: 110.40.195.125:9092
     # kafka 生产者配置
     producer:
       # 指定消息key和消息体的编解码方式
